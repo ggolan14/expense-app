@@ -1,0 +1,54 @@
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  font-family: Arial, sans-serif;
+  font-size: 14px;
+}
+
+thead {
+  background-color: #f2f2f2;
+}
+
+th, td {
+  padding: 12px 15px;
+  text-align: left;
+  border: 1px solid #ddd;
+}
+
+tr:hover {
+  background-color: #f9f9f9;
+}
+
+button {
+  padding: 5px 10px;
+  margin-right: 4px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+button:hover {
+  opacity: 0.9;
+}
+
+button[disabled] {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+button:nth-child(1) {
+  background-color: #4caf50; /* approved - green */
+  color: white;
+}
+
+button:nth-child(2) {
+  background-color: #f44336; /* rejected - red */
+  color: white;
+}
+
+button:nth-child(3) {
+  background-color: #2196f3; /* in_progress - blue */
+  color: white;
+}
+

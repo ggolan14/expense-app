@@ -1,0 +1,32 @@
+.resizable-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.resizable-table th,
+.resizable-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+  white-space: nowrap;
+  position: relative;
+}
+
+.resizable-table th {
+  background-color: #f2f2f2;
+}
+.resizable-table button {
+  padding: 4px 8px;
+  font-size: 14px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+}
+
+.resizable-table button:hover { opacity: 0.9; }
+.resizable-table button:disabled { background: #ccc; cursor: not-allowed; }
+
+.resizable-table td .button-group button:nth-child(1) { background: #4CAF50; color: #fff; } /* Approve */
+.resizable-table td .button-group button:nth-child(2) { background: #f44336; color: #fff; } /* Reject */
+.resizable-table td .button-group button:nth-child(3) { background: #2196F3; color: #fff; } /* In Progress */
+.resizable-table td .button-group button:nth-child(4) { background: #9E9E9E; color: #fff; } /* Close */
