@@ -122,7 +122,7 @@ Attachment: ${fileLink || populated.attachmentUrl || 'None'}
           <p><b>Created At:</b> ${createdAtStr}</p>
           <p><b>Attachment:</b> ${
             fileLink
-              ? `<a href="${fileLink}" target="_blank" rel="noreferrer">View PDF</a>`
+              ? `<a href="${fileLink}" target="_blank" rel="noreferrer">View PDF2</a>`
               : (populated.attachmentUrl || 'None')
           }</p>
         `;
@@ -147,6 +147,12 @@ Attachment: ${fileLink || populated.attachmentUrl || 'None'}
     res.status(500).json({ message: 'Server error' });
   }
 });
+
+const getFileName = (attachmentUrl) => {
+  if (!attachmentUrl) return null;
+  const parts = attachmentUrl.split('-');   // חותך לפי '-'
+  return parts.length > 1 ? parts.slice(1).join('-') : attachmentUrl;
+};
 
 // ✅ שליפת כל הבקשות של העובד המחובר
 router.get('/my', requireAuth, async (req, res) => {

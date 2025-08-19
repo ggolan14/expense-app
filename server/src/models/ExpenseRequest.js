@@ -1,16 +1,45 @@
+// src/models/ExpenseRequest.js
 import mongoose from 'mongoose';
+import { v4 as uuidv4 } from 'uuid';
 
-const expenseRequestSchema = new mongoose.Schema({
-  employeeId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  currency: { type: String, enum: ['NIS', '$'], default: 'NIS' },
-  amount: { type: Number, required: true },
-  reason: { type: String },
+const ExpenseRequestSchema = new mongoose.Schema({
+  reason: { 
+    type: String, 
+    required: true 
+  },
+  amount: { 
+    type: Number, 
+    required: true 
+  },
+  currency: { 
+    type: String, 
+    required: true 
+  },
+
+  // מזהה ייחודי לכל בקשה
+  requestId: {
+    type: String,
+    unique: true,
+    default: uuidv4
+  },
+
   status: {
     type: String,
-    enum: ['new', 'in_progress', 'approved', 'rejected', 'closed'],
-    default: 'new',
+    enum: ['pending', 'approved', 'rejected', 'in_progress', 'closed'],
+    default: 'pending'
   },
-  attachmentUrl: { type: String }, // local file path
+
+  employeeId: { 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: 'User' 
+  },
+
+  attachmentUrl: { 
+    type: String 
+  },
+
 }, { timestamps: true });
 
-export default mongoose.model('ExpenseRequest', expenseRequestSchema);
+// כאן חייב להיות export default
+const ExpenseRequest = mongoose.model('ExpenseRequest', ExpenseRequestSchema);
+export default ExpenseRequest;

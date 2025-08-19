@@ -1,11 +1,13 @@
 // client/src/pages/MyRequests.jsx
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo ,useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from '../api/axios';
 import ResizableTable from '../components/ResizableTable';
 
 const MyRequests = () => {
   const [requests, setRequests] = useState([]);
+  const [search, setSearch] = useState(''); 
+  const [idFilter, setIdFilter] = useState(''); // פילטר לפי ID
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -21,6 +23,38 @@ const MyRequests = () => {
     fetchMy();
   }, []);
 
+  const query = search.trim().toLowerCase();
+  const freeSearchFiltered = useMemo(() => {
+    if (!query) return requests;
+    return requests.filter((r) => {
+      const haystack = [
+        r._id,
+        r.reason,
+        r.amount?.toString(),
+        r.currency,
+        r.status,
+        r.employeeId?.fullName,
+        r.employeeId?.email,
+        r.createdAt && new Date(r.createdAt).toLocaleString(),
+        r.attachmentUrl
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase();
+      return haystack.includes(query);
+    });
+  }, [requests, query]);
+
+  const filteredRequests = useMemo(() => {
+    const idq = idFilter.trim().toLowerCase();
+    if (!idq) return freeSearchFiltered;
+    return freeSearchFiltered.filter((r) => r._id?.toLowerCase().includes(idq));
+  }, [freeSearchFiltered, idFilter]);
+const getFileName = (attachmentUrl) => {
+  if (!attachmentUrl) return null;
+  const parts = attachmentUrl.split('-');   // חותך לפי '-'
+  return parts.length > 1 ? parts.slice(1).join('-') : attachmentUrl;
+};
   const columns = [
     {
       key: '_id',
@@ -47,7 +81,7 @@ const MyRequests = () => {
       render: (row) =>
         row.attachmentUrl ? (
           <a href={`/${row.attachmentUrl}`} target="_blank" rel="noopener noreferrer">
-            View PDF
+             {getFileName(row.attachmentUrl)}
           </a>
         ) : (
           '—'
@@ -67,8 +101,27 @@ const MyRequests = () => {
       <div style={{ margin: '10px 0' }}>
         <button onClick={() => navigate('/new-expense')}>➕ New Expense Request</button>
       </div>
+      <div style={{ margin: '10px 0', display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+        <input
+          type="text"
+          placeholder="Free search (ID, employee, email, reason, status, currency, amount...)"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          style={{ width: 420, padding: 8 }}
+        />
+        <input
+          type="text"
+          placeholder="Filter by ID (contains)"
+          value={idFilter}
+          onChange={(e) => setIdFilter(e.target.value)}
+          style={{ width: 260, padding: 8 }}
+        />
+        <button onClick={() => { setSearch(''); setIdFilter(''); }}>
+          Clear
+        </button>
+      </div>
 
-      <ResizableTable columns={columns} data={requests} />
+      <ResizableTable columns={columns} data={filteredRequests} />
     </div>
   );
 };

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import axios from '../api/axios';
 import { isValidIsraeliID } from '../utils/idValidation';
+import { toast } from 'react-toastify';
 
 const Register = () => {
   const [form, setForm] = useState({ email: '', fullName: '', nationalId: '', password: '' });
@@ -9,16 +10,23 @@ const Register = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (!isValidIsraeliID(form.nationalId)) {
-      alert('תעודת זהות לא תקינה');
+      toast.error('invalid ID');
       return;
     }
+
     try {
       await axios.post('/auth/register', { ...form, role: 'employee' });
-      alert('נרשמת בהצלחה! ניתן להתחבר');
-      window.location.href = '/login';
-    } catch {
-      alert('שגיאה בהרשמה');
+      toast.success('You have successfully registered');
+      
+      // נמתין רגע כדי שהטוסט יוצג לפני מעבר לדף login
+      setTimeout(() => {
+        window.location.href = '/login';
+      }, 1500);
+    } catch (err) {
+      console.error('Registration error:', err);
+      toast.error('Error in registration');
     }
   };
 
