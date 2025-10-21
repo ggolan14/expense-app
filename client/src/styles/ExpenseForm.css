@@ -1,0 +1,77 @@
+/* מרווח אנכי בין שדות */
+.form-group {
+  margin-bottom: 15px;
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group label {
+  font-weight: 500;
+  margin-bottom: 5px;
+}
+
+/* שדות קטנים עבור מטבע וסכום */
+.small-field {
+  max-width: 120px;
+}
+
+/* הצגת Currency ו-Amount באותה שורה */
+.small-inputs {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* הצגת Reason ולייבל באותה שורה */
+.inline-field {
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+}
+
+.inline-field label {
+  margin-bottom: 0;
+  white-space: nowrap;
+}
+
+.inline-field input {
+  flex: 1;
+}
+
+/* רספונסיבי - במסכים קטנים השדות נשברים לשורות */
+@media (max-width: 600px) {
+  .small-inputs {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .small-field {
+    max-width: 100%;
+  }
+
+  .inline-field {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .inline-field input {
+    width: 100%;
+  }
+}
+
+/* עיצוב כפתור שליחה */
+form button {
+  margin-top: 10px;
+  padding: 8px 14px;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+form button:hover {
+  background-color: #45a049;
+}
