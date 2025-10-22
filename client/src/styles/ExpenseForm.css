@@ -1,30 +1,9 @@
-/* מרווח אנכי בין שדות */
 .form-group {
   margin-bottom: 15px;
   display: flex;
   flex-direction: column;
 }
 
-.form-group label {
-  font-weight: 500;
-  margin-bottom: 5px;
-}
-
-/* שדות קטנים עבור מטבע וסכום */
-.small-field {
-  max-width: 120px;
-}
-
-/* הצגת Currency ו-Amount באותה שורה */
-.small-inputs {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-/* הצגת Reason ולייבל באותה שורה */
 .inline-field {
   flex-direction: row;
   align-items: center;
@@ -32,36 +11,39 @@
 }
 
 .inline-field label {
-  margin-bottom: 0;
   white-space: nowrap;
+  margin-bottom: 0;
 }
 
-.inline-field input {
+.inline-field input,
+.inline-field select {
   flex: 1;
 }
 
-/* רספונסיבי - במסכים קטנים השדות נשברים לשורות */
-@media (max-width: 600px) {
-  .small-inputs {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .small-field {
-    max-width: 100%;
-  }
-
-  .inline-field {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .inline-field input {
-    width: 100%;
-  }
+.inline-field input[type="file"] {
+  flex: 0;
+  width: auto;
 }
 
-/* עיצוב כפתור שליחה */
+.file-list {
+  margin-top: 10px;
+  padding-left: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.file-link {
+  font-size: 0.9rem;
+  color: #1976d2;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.file-link:hover {
+  text-decoration: underline;
+}
+
 form button {
   margin-top: 10px;
   padding: 8px 14px;
@@ -74,4 +56,20 @@ form button {
 
 form button:hover {
   background-color: #45a049;
+}
+
+.attachments-list {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+}
+
+.attachments-list li a {
+  color: #1976d2;
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.attachments-list li a:hover {
+  text-decoration: underline;
 }

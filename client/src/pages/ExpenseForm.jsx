@@ -3,94 +3,198 @@ import axios from '../api/axios';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import '../styles/ExpenseForm.css';  // ← הוספת קובץ ה־CSS החדש
+import '../styles/ExpenseForm.css';
 
 const ExpenseForm = () => {
-  const [amount, setAmount] = useState('');
-  const [currency, setCurrency] = useState('NIS');
-  const [reason, setReason] = useState('');
-  const [attachment, setAttachment] = useState(null);
+  const [organization, setOrganization] = useState('');
+  const [formData, setFormData] = useState({
+    date: '',
+    fullName: '',
+    idNumber: '',
+    faculty: '',
+    phone: '',
+    amount: '',
+    budgetNumber: '',
+    description: '',
+  });
+  const [attachments, setAttachments] = useState([]); // רשימת קבצים + preview
   const navigate = useNavigate();
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleFileChange = (e) => {
+    const files = Array.from(e.target.files).map((file) => ({
+      file,
+      previewUrl: URL.createObjectURL(file), // 👈 יוצרים URL זמני
+    }));
+    setAttachments(files);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!amount || !reason || !attachment) {
-      toast.error("Please fill all fields and attach a PDF");
+    if (!organization) {
+      toast.error('Please select organization');
       return;
     }
 
-    const formData = new FormData();
-    formData.append('amount', amount);
-    formData.append('reason', reason);
-    formData.append('currency', currency);
-    formData.append('attachment', attachment);
+    const data = new FormData();
+    data.append('organization', organization);
+    Object.entries(formData).forEach(([key, value]) => data.append(key, value));
+
+    attachments.forEach((f) => {
+      data.append('attachments', f.file);
+    });
 
     try {
-      await axios.post('/expenses', formData, {
+      await axios.post('/expenses', data, {
         headers: {
           'Content-Type': 'multipart/form-data',
           Authorization: `Bearer ${localStorage.getItem('token')}`,
         },
       });
 
-      toast.success("The request has been submitted successfully");
-
-      setTimeout(() => {
-        navigate('/my-requests');
-      }, 2000);
+      toast.success('Request submitted successfully');
+      setTimeout(() => navigate('/my-requests'), 2000);
     } catch (err) {
       console.error(err);
-      toast.error("Something went wrong while submitting the request");
+      toast.error('Something went wrong');
     }
   };
 
   return (
     <div>
       <h2>Submit New Expense Request</h2>
-      <form onSubmit={handleSubmit}>
-        <div className="form-group small-inputs">
-  <label>Currency:</label>
-  <select
-    className="small-field"
-    value={currency}
-    onChange={(e) => setCurrency(e.target.value)}
-  >
-    <option value="NIS">NIS</option>
-    <option value="$">$</option>
-  </select>
 
-  <label>Amount:</label>
-  <input
-    className="small-field"
-    type="number"
-    value={amount}
-    onChange={(e) => setAmount(e.target.value)}
-    required
-  />
-</div>
+      {/* בחירת ארגון */}
       <div className="form-group inline-field">
-  <label>Reason:</label>
+        <label>Organization:</label>
+        <select
+          value={organization}
+          onChange={(e) => setOrganization(e.target.value)}
+          required
+        >
+          <option value="">-- Select --</option>
+          <option value="Technion">Technion</option>
+          <option value="Institute">Institute</option>
+        </select>
+      </div>
+
+      {organization === 'Technion' && (
+        <form onSubmit={handleSubmit}>
+          <div className="form-group inline-field">
+            <label>Date:</label>
+            <input
+              type="date"
+              name="date"
+              value={formData.date}
+              onChange={handleChange}
+              required
+            />
+          </div>
+
+          <div className="form-group inline-field">
+            <label>Full Name:</label>
+            <input
+              type="text"
+              name="fullName"
+              placeholder="שם פרטי ושם משפחה"
+              value={formData.fullName}
+              onChange={handleChange}
+              required
+            />
+          </div>
+
+          <div className="form-group inline-field">
+            <label>ID Number:</label>
+            <input
+              type="text"
+              name="idNumber"
+              placeholder="תעודת זהות"
+              value={formData.idNumber}
+              onChange={handleChange}
+              required
+            />
+          </div>
+
+          <div className="form-group inline-field">
+            <label>Faculty:</label>
+            <input
+              type="text"
+              name="faculty"
+              placeholder="שם הפקולטה"
+              value={formData.faculty}
+              onChange={handleChange}
+              required
+            />
+          </div>
+
+          <div className="form-group inline-field">
+            <label>Phone:</label>
+            <input
+              type="text"
+              name="phone"
+              placeholder="טלפון"
+              value={formData.phone}
+              onChange={handleChange}
+              required
+            />
+          </div>
+
+          <div className="form-group inline-field">
+            <label>אבקש להחזיר לי סך של:</label>
+            <input
+              type="number"
+              name="amount"
+              value={formData.amount}
+              onChange={handleChange}
+              required
+            />
+          </div>
+
+          <div className="form-group inline-field">
+            <label>מתקציב מספר:</label>
+            <input
+              type="text"
+              name="budgetNumber"
+              value={formData.budgetNumber}
+              onChange={handleChange}
+              required
+            />
+          </div>
+
+          <div className="form-group inline-field">
+  <label>בגין הוצאות ע"פ הקבלות המצורפות:</label>
   <input
-    type="text"
-    value={reason}
-    onChange={(e) => setReason(e.target.value)}
-    required
+    type="file"
+    accept="application/pdf"
+    multiple
+    onChange={handleFileChange}
   />
 </div>
 
-        <div className="form-group">
-          <label>Attachment (PDF only):</label>
-          <input
-            type="file"
-            accept="application/pdf"
-            onChange={(e) => setAttachment(e.target.files[0])}
-            required
-          />
-        </div>
+          {/* ✨ רשימת הקבצים שנבחרו — לחיצה תפתח אותם */}
+          {attachments.length > 0 && (
+            <div className="file-list">
+              {attachments.map((att, index) => (
+                <a
+                  key={index}
+                  href={att.previewUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="file-link"
+                >
+                  📎 {att.file.name}
+                </a>
+              ))}
+            </div>
+          )}
 
-        <button type="submit">Send Request</button>
-      </form>
+          <button type="submit">Send Request</button>
+        </form>
+      )}
     </div>
   );
 };
