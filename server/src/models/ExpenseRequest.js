@@ -47,8 +47,8 @@ const ExpenseRequestSchema = new mongoose.Schema(
       required: true,
     },
     currency: {
-      type: String,
-      //required: true,
+      type: String, // 'NIS' | 'USD'
+      // required: true,
     },
 
     // 📝 הערות או תיאור נוסף (לא חובה)
@@ -61,6 +61,7 @@ const ExpenseRequestSchema = new mongoose.Schema(
       type: String,
       enum: ['pending', 'approved', 'rejected', 'in_progress', 'closed'],
       default: 'pending',
+      index: true, // 💡 מומלץ לאינדוקס פילטור עתידי
     },
 
     // 👤 מזהה המשתמש שהגיש את הבקשה

@@ -1,75 +1,59 @@
+.expense-form-container {
+  max-width: 600px;
+  margin: 0 auto;
+  direction: rtl;
+  text-align: right;
+  background-color: #f9f9f9;
+  padding: 20px;
+  border-radius: 10px;
+}
+
 .form-group {
   margin-bottom: 15px;
+}
+
+.inline-field {
   display: flex;
   flex-direction: column;
 }
 
-.inline-field {
-  flex-direction: row;
-  align-items: center;
-  gap: 10px;
+label {
+  font-weight: bold;
+  margin-bottom: 5px;
 }
 
-.inline-field label {
-  white-space: nowrap;
-  margin-bottom: 0;
-}
-
-.inline-field input,
-.inline-field select {
-  flex: 1;
-}
-
-.inline-field input[type="file"] {
-  flex: 0;
-  width: auto;
+input,
+select {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
 }
 
 .file-list {
   margin-top: 10px;
-  padding-left: 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
 }
 
 .file-link {
-  font-size: 0.9rem;
+  display: block;
+  margin-bottom: 5px;
   color: #1976d2;
   text-decoration: none;
-  cursor: pointer;
 }
 
 .file-link:hover {
   text-decoration: underline;
 }
 
-form button {
-  margin-top: 10px;
-  padding: 8px 14px;
-  background-color: #4caf50;
+.submit-btn {
+  background-color: #1976d2;
   color: white;
+  font-weight: bold;
+  padding: 10px;
   border: none;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
 }
 
-form button:hover {
-  background-color: #45a049;
-}
-
-.attachments-list {
-  list-style: none;
-  padding-left: 0;
-  margin: 0;
-}
-
-.attachments-list li a {
-  color: #1976d2;
-  text-decoration: none;
-  font-size: 0.9rem;
-}
-
-.attachments-list li a:hover {
-  text-decoration: underline;
+.submit-btn:hover {
+  background-color: #125ea5;
 }

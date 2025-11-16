@@ -1,127 +1,183 @@
-// client/src/pages/MyRequests.jsx
-import React, { useEffect, useMemo ,useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from '../api/axios';
-import ResizableTable from '../components/ResizableTable';
+import '../styles/MyRequests.css';
+
+const statusLabel = (s) =>
+  ({
+    pending: 'חדשה',
+    new: 'חדשה',          // תאימות לשדות ישנים אם קיימים
+    in_progress: 'בטיפול',
+    approved: 'אושרה',
+    rejected: 'נדחתה',
+    closed: 'נסגרה',
+  }[s] ?? 'חדשה');
+
+const statusClass = (s) =>
+  s === 'approved'
+    ? 'status-approved'
+    : s === 'rejected'
+    ? 'status-rejected'
+    : 'status-default';
+
+const currencySymbol = (c) => (c === 'USD' ? '$' : '₪');
 
 const MyRequests = () => {
   const [requests, setRequests] = useState([]);
-  const [search, setSearch] = useState(''); 
-  const [idFilter, setIdFilter] = useState(''); // פילטר לפי ID
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [searchText, setSearchText] = useState('');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchMy = async () => {
-      try {
-        const res = await axios.get('/expenses/my');
-        setRequests(Array.isArray(res.data) ? res.data : []);
-      } catch (err) {
-        console.error('Failed to fetch my requests', err);
-        setRequests([]);
-      }
-    };
-    fetchMy();
+    axios
+      .get('/expenses/my', {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+      })
+      .then((res) => setRequests(res.data || []))
+      .catch((err) => console.error(err));
   }, []);
 
-  const query = search.trim().toLowerCase();
-  const freeSearchFiltered = useMemo(() => {
-    if (!query) return requests;
-    return requests.filter((r) => {
-      const haystack = [
-        r._id,
-        r.reason,
-        r.amount?.toString(),
-        r.currency,
-        r.status,
-        r.employeeId?.fullName,
-        r.employeeId?.email,
-        r.createdAt && new Date(r.createdAt).toLocaleString(),
-        r.attachmentUrl
-      ]
-        .filter(Boolean)
-        .join(' ')
-        .toLowerCase();
-      return haystack.includes(query);
-    });
-  }, [requests, query]);
+  const filtered = useMemo(() => {
+    return (requests || []).filter((r) => {
+      // סטטוס
+      if (statusFilter !== 'all' && r.status !== statusFilter) return false;
 
-  const filteredRequests = useMemo(() => {
-    const idq = idFilter.trim().toLowerCase();
-    if (!idq) return freeSearchFiltered;
-    return freeSearchFiltered.filter((r) => r._id?.toLowerCase().includes(idq));
-  }, [freeSearchFiltered, idFilter]);
-const getFileName = (attachmentUrl) => {
-  if (!attachmentUrl) return null;
-  const parts = attachmentUrl.split('-');   // חותך לפי '-'
-  return parts.length > 1 ? parts.slice(1).join('-') : attachmentUrl;
-};
-  const columns = [
-    {
-      key: '_id',
-      label: 'ID',
-      render: (row) => (
-        <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-          <code style={{ fontSize: 12 }}>{row._id}</code>
-          <button
-            onClick={() => navigator.clipboard.writeText(row._id)}
-            title="Copy ID"
-          >
-            Copy
-          </button>
-        </div>
-      ),
-    },
-    { key: 'reason', label: 'Reason' },
-    { key: 'amount', label: 'Amount' },
-    { key: 'currency', label: 'Currency' },
-    { key: 'status', label: 'Status' },
-    {
-      key: 'attachmentUrl',
-      label: 'Attachment',
-      render: (row) =>
-        row.attachmentUrl ? (
-          <a href={`/${row.attachmentUrl}`} target="_blank" rel="noopener noreferrer">
-             {getFileName(row.attachmentUrl)}
-          </a>
-        ) : (
-          '—'
-        ),
-    },
-    {
-      key: 'createdAt',
-      label: 'Created At',
-      render: (row) => (row.createdAt ? new Date(row.createdAt).toLocaleString() : '—'),
-    },
-  ];
+      // חיפוש בסיבה
+      if (searchText && !(r.reason || '').toLowerCase().includes(searchText.toLowerCase()))
+        return false;
+
+      // טווח תאריכים לפי createdAt
+      if (r.createdAt) {
+        const created = new Date(r.createdAt);
+        if (dateFrom && created < new Date(dateFrom)) return false;
+        if (dateTo) {
+          const to = new Date(dateTo);
+          to.setHours(23, 59, 59, 999);
+          if (created > to) return false;
+        }
+      }
+      return true;
+    });
+  }, [requests, statusFilter, searchText, dateFrom, dateTo]);
+
+  const clearFilters = () => {
+    setStatusFilter('all');
+    setSearchText('');
+    setDateFrom('');
+    setDateTo('');
+  };
 
   return (
-    <div>
-      <h2>My Expense Requests</h2>
-
-      <div style={{ margin: '10px 0' }}>
-        <button onClick={() => navigate('/new-expense')}>➕ New Expense Request</button>
-      </div>
-      <div style={{ margin: '10px 0', display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-        <input
-          type="text"
-          placeholder="Free search (ID, employee, email, reason, status, currency, amount...)"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          style={{ width: 420, padding: 8 }}
-        />
-        <input
-          type="text"
-          placeholder="Filter by ID (contains)"
-          value={idFilter}
-          onChange={(e) => setIdFilter(e.target.value)}
-          style={{ width: 260, padding: 8 }}
-        />
-        <button onClick={() => { setSearch(''); setIdFilter(''); }}>
-          Clear
+    <div className="my-requests-container" dir="rtl">
+      <div className="header-row">
+        <h2>הבקשות שלי</h2>
+        <button className="primary-btn" onClick={() => navigate('/new-expense')}>
+          + בקשה חדשה
         </button>
       </div>
 
-      <ResizableTable columns={columns} data={filteredRequests} />
+      {/* 🔎 סרגל פילטרים */}
+      <div className="filters-bar">
+        <div className="filter-item">
+          <label>סטטוס:</label>
+          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+            <option value="all">הכול</option>
+            <option value="pending">חדשה</option>
+            <option value="in_progress">בטיפול</option>
+            <option value="approved">אושרה</option>
+            <option value="rejected">נדחתה</option>
+            <option value="closed">נסגרה</option>
+          </select>
+        </div>
+
+        <div className="filter-item">
+          <label>חיפוש בסיבה:</label>
+          <input
+            type="text"
+            placeholder="הקלד טקסט..."
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+          />
+        </div>
+
+        <div className="filter-item">
+          <label>מתאריך:</label>
+          <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
+        </div>
+
+        <div className="filter-item">
+          <label>עד תאריך:</label>
+          <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
+        </div>
+
+        <div className="filter-actions">
+          <button className="secondary-btn" onClick={clearFilters}>נקה מסננים</button>
+        </div>
+      </div>
+
+      {filtered.length === 0 ? (
+        <div className="empty-state">
+          <p>לא נמצאו בקשות בהתאם למסננים.</p>
+          <button className="primary-btn" onClick={() => navigate('/new-expense')}>
+            + צור בקשה חדשה
+          </button>
+        </div>
+      ) : (
+        <table className="requests-table">
+          <thead>
+            <tr>
+              <th>תאריך</th>
+              <th>סכום</th>
+              <th>סיבה</th>
+              <th>סטטוס</th>
+              <th>קבצים</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.map((r) => (
+              <tr key={r.requestId || r._id}>
+                <td>{r.createdAt ? new Date(r.createdAt).toLocaleDateString('he-IL') : '-'}</td>
+                <td>
+                  {typeof r.amount === 'number' ? r.amount.toLocaleString('he-IL') : r.amount}{' '}
+                  {currencySymbol(r.currency)}
+                </td>
+                <td>{r.reason || '-'}</td>
+                <td className={statusClass(r.status)}>{statusLabel(r.status)}</td>
+                <td className="files-cell">
+                  {Array.isArray(r.attachments) && r.attachments.length > 0 ? (
+                    r.attachments.map((p, i) => (
+                      <a
+                        key={i}
+                        href={`http://localhost:4000/${p}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="file-link"
+                        title={p}
+                      >
+                        📎 קובץ {i + 1}
+                      </a>
+                    ))
+                  ) : r.attachmentUrl ? (
+                    <a
+                      href={`http://localhost:4000/${r.attachmentUrl}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="file-link"
+                      title={r.attachmentUrl}
+                    >
+                      📎 קובץ
+                    </a>
+                  ) : (
+                    '-'
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
     </div>
   );
 };

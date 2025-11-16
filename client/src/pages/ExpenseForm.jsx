@@ -17,7 +17,7 @@ const ExpenseForm = () => {
     budgetNumber: '',
     description: '',
   });
-  const [attachments, setAttachments] = useState([]); // רשימת קבצים + preview
+  const [attachments, setAttachments] = useState([]);
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -27,7 +27,7 @@ const ExpenseForm = () => {
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files).map((file) => ({
       file,
-      previewUrl: URL.createObjectURL(file), // 👈 יוצרים URL זמני
+      previewUrl: URL.createObjectURL(file),
     }));
     setAttachments(files);
   };
@@ -36,7 +36,7 @@ const ExpenseForm = () => {
     e.preventDefault();
 
     if (!organization) {
-      toast.error('Please select organization');
+      toast.error('אנא בחרו ארגון');
       return;
     }
 
@@ -56,36 +56,36 @@ const ExpenseForm = () => {
         },
       });
 
-      toast.success('Request submitted successfully');
+      toast.success('הבקשה נשלחה בהצלחה');
       setTimeout(() => navigate('/my-requests'), 2000);
     } catch (err) {
       console.error(err);
-      toast.error('Something went wrong');
+      toast.error('אירעה שגיאה, נסו שוב מאוחר יותר');
     }
   };
 
   return (
-    <div>
-      <h2>Submit New Expense Request</h2>
+    <div className="expense-form-container" dir="rtl">
+      <h2>הגשת בקשה חדשה להחזר הוצאות</h2>
 
       {/* בחירת ארגון */}
       <div className="form-group inline-field">
-        <label>Organization:</label>
+        <label>ארגון:</label>
         <select
           value={organization}
           onChange={(e) => setOrganization(e.target.value)}
           required
         >
-          <option value="">-- Select --</option>
-          <option value="Technion">Technion</option>
-          <option value="Institute">Institute</option>
+          <option value="">-- בחרו --</option>
+          <option value="Technion">טכניון</option>
+          <option value="Institute">מכון</option>
         </select>
       </div>
 
       {organization === 'Technion' && (
         <form onSubmit={handleSubmit}>
           <div className="form-group inline-field">
-            <label>Date:</label>
+            <label>תאריך:</label>
             <input
               type="date"
               name="date"
@@ -96,7 +96,7 @@ const ExpenseForm = () => {
           </div>
 
           <div className="form-group inline-field">
-            <label>Full Name:</label>
+            <label>שם מלא:</label>
             <input
               type="text"
               name="fullName"
@@ -108,7 +108,7 @@ const ExpenseForm = () => {
           </div>
 
           <div className="form-group inline-field">
-            <label>ID Number:</label>
+            <label>תעודת זהות:</label>
             <input
               type="text"
               name="idNumber"
@@ -120,7 +120,7 @@ const ExpenseForm = () => {
           </div>
 
           <div className="form-group inline-field">
-            <label>Faculty:</label>
+            <label>פקולטה:</label>
             <input
               type="text"
               name="faculty"
@@ -132,11 +132,11 @@ const ExpenseForm = () => {
           </div>
 
           <div className="form-group inline-field">
-            <label>Phone:</label>
+            <label>טלפון:</label>
             <input
               type="text"
               name="phone"
-              placeholder="טלפון"
+              placeholder="מספר טלפון"
               value={formData.phone}
               onChange={handleChange}
               required
@@ -144,10 +144,11 @@ const ExpenseForm = () => {
           </div>
 
           <div className="form-group inline-field">
-            <label>אבקש להחזיר לי סך של:</label>
+            <label>סכום מבוקש:</label>
             <input
               type="number"
               name="amount"
+              placeholder="הזן סכום (בש״ח או דולר)"
               value={formData.amount}
               onChange={handleChange}
               required
@@ -155,10 +156,11 @@ const ExpenseForm = () => {
           </div>
 
           <div className="form-group inline-field">
-            <label>מתקציב מספר:</label>
+            <label>מספר תקציב:</label>
             <input
               type="text"
               name="budgetNumber"
+              placeholder="מספר התקציב"
               value={formData.budgetNumber}
               onChange={handleChange}
               required
@@ -166,16 +168,26 @@ const ExpenseForm = () => {
           </div>
 
           <div className="form-group inline-field">
-  <label>בגין הוצאות ע"פ הקבלות המצורפות:</label>
-  <input
-    type="file"
-    accept="application/pdf"
-    multiple
-    onChange={handleFileChange}
-  />
-</div>
+            <label>תיאור / פירוט ההוצאות:</label>
+            <input
+              type="text"
+              name="description"
+              placeholder='בגין הוצאות ע"פ הקבלות המצורפות'
+              value={formData.description}
+              onChange={handleChange}
+            />
+          </div>
 
-          {/* ✨ רשימת הקבצים שנבחרו — לחיצה תפתח אותם */}
+          <div className="form-group inline-field">
+            <label>צרפו קובצי PDF (חשבוניות/קבלות):</label>
+            <input
+              type="file"
+              accept="application/pdf"
+              multiple
+              onChange={handleFileChange}
+            />
+          </div>
+
           {attachments.length > 0 && (
             <div className="file-list">
               {attachments.map((att, index) => (
@@ -192,7 +204,9 @@ const ExpenseForm = () => {
             </div>
           )}
 
-          <button type="submit">Send Request</button>
+          <button type="submit" className="submit-btn">
+            שליחת בקשה
+          </button>
         </form>
       )}
     </div>
