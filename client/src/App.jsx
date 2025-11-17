@@ -5,43 +5,80 @@ import 'react-toastify/dist/ReactToastify.css';
 
 import Login from './pages/Login';
 import Register from './pages/Register';
-import { AuthContext } from './auth/AuthContext';
 import ExpenseForm from './pages/ExpenseForm';
-import MyRequests from './pages/MyRequests';
-import AllExpenseRequests from "./pages/AllExpenseRequests";
+import Requests from './pages/Requests';
+import { AuthContext } from './auth/AuthContext';
 
-const App = () => {
-  const { user } = useContext(AuthContext);
+const LoadingScreen = () => (
+  <div style={{ padding: 40, textAlign: 'center' }} dir="rtl">טוען…</div>
+);
+
+const RequireAuth = ({ children, roles }) => {
+  const { user, loading } = useContext(AuthContext) || {};
+  if (loading) return <LoadingScreen />;
+  if (!user?.token) return <Navigate to="/login" replace />;
+
+  if (roles?.length) {
+    const role = (user.role || '').toLowerCase();
+    if (!roles.includes(role)) {
+      return <Navigate to="/dashboard" replace />;
+    }
+  }
+  return children;
+};
+
+export default function App() {
+  const { user, loading } = useContext(AuthContext) || {};
+
+  const dashboardElement = loading
+    ? <LoadingScreen />
+    : user?.token
+      ? ((user.role || '').toLowerCase() === 'budget'
+          ? <Navigate to="/all-requests" replace />
+          : <Navigate to="/my-requests" replace />)
+      : <Navigate to="/login" replace />;
 
   return (
     <>
-      <ToastContainer /> {/* ✅ Toast container להצגת הודעות מכל מקום */}
+      <ToastContainer />
       <Routes>
+        {/* ציבורי */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+
+        {/* מפצל תפקידים */}
+        <Route path="/dashboard" element={dashboardElement} />
+
+        {/* שני הנתיבים – אותו מסך מאוחד */}
         <Route
-          path="/dashboard"
+          path="/my-requests"
           element={
-            user ? (
-              user.role === 'employee' ? (
-                <Navigate to="/my-requests" />
-              ) : user.role === 'budget' ? (
-                <Navigate to="/all-requests" />
-              ) : (
-                <Navigate to="/login" />
-              )
-            ) : (
-              <Navigate to="/login" />
-            )
+            <RequireAuth roles={['employee','budget']}>
+              <Requests />
+            </RequireAuth>
           }
         />
-        <Route path="/new-expense" element={<ExpenseForm />} />
-        <Route path="/my-requests" element={<MyRequests />} />
-        <Route path="/all-requests" element={<AllExpenseRequests />} />
-        <Route path="*" element={<Navigate to="/dashboard" />} />
+        <Route
+          path="/all-requests"
+          element={
+            <RequireAuth roles={['employee','budget']}>
+              <Requests />
+            </RequireAuth>
+          }
+        />
+
+        {/* טופס חדש לעובד רגיל בלבד (התאם לפי צורך) */}
+        <Route
+          path="/new-expense"
+          element={
+            <RequireAuth roles={['employee']}>
+              <ExpenseForm />
+            </RequireAuth>
+          }
+        />
+
+        <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
     </>
   );
-};
-
-export default App;
+}

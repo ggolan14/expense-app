@@ -1,42 +1,49 @@
-import React, { createContext, useState, useEffect, useContext } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import axios from '../api/axios';
 
-export const AuthContext = createContext();
+export const AuthContext = createContext({ user: null, setUser: () => {}, loading: true });
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-
-  const login = async (email, password) => {
-    const res = await axios.post('/auth/login', { email, password });
-    localStorage.setItem('token', res.data.token);
-    setUser(res.data.user);
-  };
-
-  const logout = () => {
-    localStorage.removeItem('token');
-    setUser(null);
-  };
-
-  const loadUser = async () => {
-    try {
-      const res = await axios.get('/auth/me');
-      setUser(res.data.user);
-    } catch {
-      logout();
-    }
-  };
+  const [user, setUser] = useState(null);      // { token, role, ... }
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
-    if (token) loadUser();
+
+    if (!token) {
+      setLoading(false);
+      return;
+    }
+
+    // מציבים רק token זמני – בלי role מ-LS כדי לא לטעות בכיוון
+    setUser({ token });
+
+    axios.get('/auth/me', { headers: { Authorization: `Bearer ${token}` } })
+      .then((res) => {
+        const u = res.data?.user || res.data; // תאם לפורמט ה-API שלך
+        if (u) {
+          const role = (u.role || '').toLowerCase();
+          setUser({ ...u, token, role });
+          localStorage.setItem('role', role || '');
+          if (u.fullName) localStorage.setItem('name', u.fullName);
+        } else {
+          throw new Error('No user in /auth/me');
+        }
+      })
+      .catch(() => {
+        localStorage.removeItem('token');
+        localStorage.removeItem('role');
+        localStorage.removeItem('name');
+        setUser(null);
+      })
+      .finally(() => setLoading(false));
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider value={{ user, setUser, loading }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
-// ✅ הוספת הפונקציה החסרה שגורמת לשגיאה
 export const useAuth = () => useContext(AuthContext);
